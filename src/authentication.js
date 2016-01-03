@@ -6,12 +6,11 @@ const log = require('./logger');
 const request = require('./utils/request');
 const url = require('./urls').zwave;
 
-const environment = require(`../config`).zwave;
-const baseUrl = (environment.secure ? 'https' : 'http') + `://${environment.server}:${environment.port}`;
+const config = require(`./config`);
 
 module.exports = {
     login: function login(username, password, rememeberMe = false) {
-        return request.post(baseUrl + url.login, {
+        return request.post(config.getZwaveBaseUrl() + url.login, {
             login: username,
             password,
             keepme: rememeberMe,

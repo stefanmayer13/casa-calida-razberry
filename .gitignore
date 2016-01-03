@@ -1,5 +1,6 @@
 # IntelliJ
 .idea
+tmp
 
 # Dependencies
 node_modules

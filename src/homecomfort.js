@@ -6,13 +6,12 @@ const log = require('./logger');
 const request = require('./utils/request');
 const url = require('./urls').homecomfort;
 
-const environment = require(`../config`).homecomfort;
-const baseUrl = (environment.secure ? 'https' : 'http') + `://${environment.server}:${environment.port}/api/`;
+const config = require(`./config`);
 
 module.exports = {
     check() {
-        return request.get(baseUrl + url.check, {
-            'Token': environment.token,
+        return request.get(config.getHcBaseUrl() + url.check, {
+            'Token': config.getToken(),
         }).then((data) => {
             if (data.statusCode !== 200) {
                 log.error(`Couldn't connect to homecomfort. Code ${data.statusCode}`);
@@ -24,8 +23,8 @@ module.exports = {
 
     fullUpdate(update) {
         log.info('Full update sent');
-        return request.post(baseUrl + url.fullUpdate, update, {
-            'Token': environment.token,
+        return request.post(config.getHcBaseUrl() + url.fullUpdate, update, {
+            'Token': config.getToken(),
         }).then((data) => {
             if (data.statusCode !== 200) {
                 log.error(`Couldn't send full update. Code ${data.statusCode}`);
@@ -37,8 +36,8 @@ module.exports = {
 
     incrementalUpdate(update) {
         log.info('Incremental update sent');
-        return request.post(baseUrl + url.incrementalUpdate, update, {
-            'Token': environment.token,
+        return request.post(config.getHcBaseUrl() + url.incrementalUpdate, update, {
+            'Token': config.getToken(),
         }).then((data) => {
             if (data.statusCode !== 200) {
                 log.error(`Couldn't send incremental update. Code ${data.statusCode}`);

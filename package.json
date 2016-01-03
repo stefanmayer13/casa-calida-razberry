@@ -1,5 +1,5 @@
 {
-  "name": "homecomfort-razberry",
+  "name": "homecomfort",
   "version": "1.0.0",
   "description": "Connects homecomfort with your local RaZberry system. Runs directly on your Raspberry Pi.",
   "main": "lib/index.js",
@@ -47,5 +47,8 @@
     "hapi": "^11.1.4",
     "superagent": "^1.6.1",
     "winston": "^2.1.1"
+  },
+  "bin": {
+    "homecomfort": "lib/index.js"
   }
 }

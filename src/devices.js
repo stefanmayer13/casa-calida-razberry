@@ -8,12 +8,11 @@ const log = require('./logger');
 const request = require('./utils/request');
 const url = require('./urls').zwave;
 
-const environment = require(`../config`).zwave;
-const baseUrl = (environment.secure ? 'https' : 'http') + `://${environment.server}:${environment.port}`;
+const config = require(`./config`);
 
 module.exports = {
     getDevicesInfo(state) {
-        return request.post(baseUrl + url.data + '0', null, {
+        return request.post(config.getZwaveBaseUrl() + url.data + '0', null, {
             'Cookie': state.cookie,
         }).then((data) => {
             if (data.statusCode !== 200) {
@@ -25,7 +24,7 @@ module.exports = {
     },
 
     getXml(state, file) {
-        return request.get(`${baseUrl}${url.xml}/${file}`, null, {
+        return request.get(`${config.getZwaveBaseUrl()}${url.xml}/${file}`, null, {
             'Cookie': state.cookie,
         }).then((data) => {
             if (data.statusCode !== 200) {
@@ -48,7 +47,7 @@ module.exports = {
     },
 
     getIncrementalUpdate(state, lastUpdate) {
-        return request.post(baseUrl + url.data + lastUpdate, null, {
+        return request.post(config.getZwaveBaseUrl() + url.data + lastUpdate, null, {
             'Cookie': state.cookie,
         }).then((data) => {
             if (data.statusCode !== 200) {

@@ -4,14 +4,14 @@
 
 module.exports = {
     zwave: {
-        server: '192.168.1.136',
+        server: 'localhost',
         port: '8083',
         secure: false,
     },
     homecomfort: {
-        server: 'localhost',
+        server: 'http://stefanmayer.me',
         port: '3000',
         secure: false,
-        token: '5sdm3gZ8_jG91',
+        token: 'xxxxxxxxxx',
     },
 };
