@@ -7,6 +7,8 @@ module.exports = {
         server: 'localhost',
         port: '8083',
         secure: false,
+        username: 'admin',
+        password: 'xxxxxxx',
     },
     homecomfort: {
         server: 'www.casa-calida.com',

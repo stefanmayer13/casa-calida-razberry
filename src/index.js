@@ -11,16 +11,9 @@ const zwave = require('./zwave');
 const processArguments = require('./utils/processArguments');
 
 const configPath = processArguments.get('config');
-const username = processArguments.get('username');
-const password = processArguments.get('password');
 
-if (!username || !password) {
-    logger.error('Please provide "username" and "password" as arguments to connect to the z-wave server.');
-}
 if (!configPath) {
     logger.error('Please provide "config" as arguments to point to your config file. See README for more infos.');
-}
-if (!username || !password || !configPath) {
     process.exit(1);
 }
 
@@ -37,8 +30,9 @@ try {
 }
 
 config.setPath(absoluteConfigPath);
+const auth = config.getAuthentication();
 
-zwave(username, password)
+zwave(auth.username, auth.password)
     .catch((e) => {
         logger.error(e);
         process.exit(3);

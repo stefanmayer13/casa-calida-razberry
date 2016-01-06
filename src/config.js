@@ -30,4 +30,11 @@ module.exports = {
     getToken() {
         return this.getConfig().casacalida.token;
     },
+
+    getAuthentication() {
+        return {
+            username: this.getConfig().zwave.username,
+            password: this.getConfig().zwave.password,
+        };
+    },
 };
