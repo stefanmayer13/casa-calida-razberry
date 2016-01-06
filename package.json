@@ -1,16 +1,16 @@
 {
-  "name": "homecomfort",
+  "name": "casa-calida",
   "version": "1.0.0",
-  "description": "Connects homecomfort with your local RaZberry system. Runs directly on your Raspberry Pi.",
+  "description": "Connects your RaZberry to the casa-calida servers. Runs directly on your Raspberry Pi.",
   "main": "lib/index.js",
   "scripts": {
     "compile": "babel --babelrc .babelrc -d lib/ src/",
     "prepublish": "npm run compile",
-    "test": "test"
+    "test": ""
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stefanmayer13/homecomfort-razberry.git"
+    "url": "git+https://github.com/stefanmayer13/casa-calida-razberry.git"
   },
   "keywords": [
     "z-wave",
@@ -18,14 +18,14 @@
     "homeautomation",
     "razberry",
     "automation",
-    "homecomfort"
+    "casa-calida"
   ],
   "author": "Stefan Mayer <stefanmayer13@gmail.com> (http://stefanmayer.me)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/stefanmayer13/homecomfort-razberry/issues"
+    "url": "https://github.com/stefanmayer13/casa-calida-razberry/issues"
   },
-  "homepage": "https://github.com/stefanmayer13/homecomfort-razberry#readme",
+  "homepage": "https://github.com/stefanmayer13/casa-calida-razberry#readme",
   "devDependencies": {
     "babel-cli": "^6.3.17",
     "babel-plugin-syntax-trailing-function-commas": "^6.3.13",
@@ -49,6 +49,6 @@
     "winston": "^2.1.1"
   },
   "bin": {
-    "homecomfort": "lib/index.js"
+    "casa-calida": "lib/index.js"
   }
 }

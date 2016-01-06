@@ -9,7 +9,7 @@ module.exports = {
         secure: false,
     },
     homecomfort: {
-        server: 'http://stefanmayer.me',
+        server: 'www.casa-calida.com',
         port: '3000',
         secure: false,
         token: 'xxxxxxxxxx',

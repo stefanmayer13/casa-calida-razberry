@@ -7,5 +7,3 @@ node_modules
 
 # Transpiled files
 lib
-config.js
-configjson-*.json

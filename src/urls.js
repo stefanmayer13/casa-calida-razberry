@@ -8,7 +8,7 @@ module.exports = {
         data: '/ZWaveAPI/Data/',
         xml: '/ZDDX',
     },
-    homecomfort: {
+    casacalida: {
         check: 'v1/check',
         fullUpdate: 'v1/fullupdate',
         incrementalUpdate: 'v1/incrementalupdate',

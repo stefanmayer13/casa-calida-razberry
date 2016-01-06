@@ -4,7 +4,7 @@
 
 const log = require('./logger');
 const request = require('./utils/request');
-const url = require('./urls').homecomfort;
+const url = require('./urls').casacalida;
 
 const config = require(`./config`);
 
@@ -14,7 +14,7 @@ module.exports = {
             'Token': config.getToken(),
         }).then((data) => {
             if (data.statusCode !== 200) {
-                log.error(`Couldn't connect to homecomfort. Code ${data.statusCode}`);
+                log.error(`Couldn't connect to casacalida. Code ${data.statusCode}`);
                 throw new Error(`${data.statusCode} ${data.error}`);
             }
             return data.body;

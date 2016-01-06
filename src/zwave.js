@@ -7,7 +7,7 @@ const logger = require('./logger');
 
 const authentication = require('./authentication');
 const devicesApi = require('./devices');
-const homecomfort = require('./homecomfort');
+const casaCalida = require('./casaCalida');
 const sensorConverter = require('./converter/Sensor');
 
 const commandClassConverter = {
@@ -63,7 +63,7 @@ function getIncrementalUpdate() {
                 }).filter((sensor) => {
                     return !!sensor;
                 });
-                return homecomfort.incrementalUpdate(sensorsData);
+                return casaCalida.incrementalUpdate(sensorsData);
             }
         })
         .catch((e) => {
@@ -87,10 +87,10 @@ module.exports = function zwave(username, password) {
         password,
     };
     return Promise.all([
-        homecomfort.check(),
+        casaCalida.check(),
         authentication.login(username, password),
     ]).then((results) => {
-        logger.info('Connected to homecomfort and zwave');
+        logger.info('Connected to casa-calida and zwave');
         state.cookie = results[1];
         return devicesApi.getDevicesInfo(state);
     }).then((data) => {
@@ -163,6 +163,6 @@ module.exports = function zwave(username, password) {
             });
         });
     }).then((devices) => {
-        return homecomfort.fullUpdate(devices);
+        return casaCalida.fullUpdate(devices);
     });
 };
