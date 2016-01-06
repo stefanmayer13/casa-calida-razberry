@@ -1,6 +1,6 @@
 {
   "name": "casa-calida",
-  "version": "1.0.0",
+  "version": "0.1.1",
   "description": "Connects your RaZberry to the casa-calida servers. Runs directly on your Raspberry Pi.",
   "main": "lib/index.js",
   "scripts": {
@@ -20,7 +20,7 @@
     "automation",
     "casa-calida"
   ],
-  "author": "Stefan Mayer <stefanmayer13@gmail.com> (http://stefanmayer.me)",
+  "author": "Stefan Mayer <stefan@stefanmayer.me> (http://stefanmayer.me)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/stefanmayer13/casa-calida-razberry/issues"
@@ -46,7 +46,8 @@
     "deepmerge": "^0.2.10",
     "hapi": "^11.1.4",
     "superagent": "^1.6.1",
-    "winston": "^2.1.1"
+    "winston": "^2.1.1",
+    "xml2js": "^0.4.15"
   },
   "bin": {
     "casa-calida": "lib/index.js"

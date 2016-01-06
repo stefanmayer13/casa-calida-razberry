@@ -1,5 +1,5 @@
 /**
- * @author <a href="mailto:stefanmayer13@gmail.com">Stefan Mayer</a>
+ * @author <a href="mailto:stefan@stefanmayer.me">Stefan Mayer</a>
  */
 
 module.exports = {

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * @author <a href="mailto:stefanmayer13@gmail.com">Stefan Mayer</a>
+ * @author <a href="mailto:stefan@stefanmayer.me">Stefan Mayer</a>
  */
 
 const fs = require('fs');
