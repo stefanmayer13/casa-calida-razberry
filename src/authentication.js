@@ -14,9 +14,9 @@ module.exports = {
             login: username,
             password,
             keepme: rememeberMe,
-        }).then((data) => {
-            return data.res.headers['set-cookie'][0];
-        }).catch((e) => {
+        })
+        .then((data) => data.res.headers['set-cookie'][0])
+        .catch((e) => {
             log.error('Login not successful');
             throw e;
         });

@@ -27,27 +27,25 @@
   },
   "homepage": "https://github.com/stefanmayer13/casa-calida-razberry#readme",
   "devDependencies": {
-    "babel-cli": "^6.3.17",
-    "babel-plugin-syntax-trailing-function-commas": "^6.3.13",
-    "babel-plugin-transform-class-properties": "^6.3.13",
-    "babel-plugin-transform-es2015-parameters": "^6.3.18",
-    "babel-plugin-transform-strict-mode": "^6.3.13",
-    "babel-register": "^6.3.13",
-    "chai": "^3.4.1",
-    "eslint": "^1.10.3",
-    "eslint-config-airbnb": "^2.1.1",
-    "eslint-plugin-react": "^3.11.3",
-    "mocha": "^2.3.4",
+    "babel-cli": "^6.5.1",
+    "babel-plugin-syntax-trailing-function-commas": "^6.5.0",
+    "babel-plugin-transform-class-properties": "^6.5.2",
+    "babel-plugin-transform-es2015-parameters": "^6.5.0",
+    "babel-plugin-transform-strict-mode": "^6.5.2",
+    "babel-register": "^6.5.2",
+    "chai": "^3.5.0",
+    "eslint": "^2.0.0",
+    "mocha": "^2.4.5",
     "rewire": "^2.5.1",
-    "sinon": "^1.17.2"
+    "sinon": "^1.17.3"
   },
   "dependencies": {
-    "bluebird": "^3.1.1",
+    "bluebird": "^3.3.1",
     "deepmerge": "^0.2.10",
-    "hapi": "^11.1.4",
-    "superagent": "^1.6.1",
+    "hapi": "^13.0.0",
+    "superagent": "^1.7.2",
     "winston": "^2.1.1",
-    "xml2js": "^0.4.15"
+    "xml2js": "^0.4.16"
   },
   "bin": {
     "casa-calida": "lib/index.js"

@@ -19,12 +19,12 @@ module.exports = {
 
     getZwaveBaseUrl() {
         const zwaveConfig = this.getConfig().zwave;
-        return (zwaveConfig.secure ? 'https' : 'http') + `://${zwaveConfig.server}:${zwaveConfig.port}`;
+        return `${zwaveConfig.secure ? 'https' : 'http'}://${zwaveConfig.server}:${zwaveConfig.port}`;
     },
 
     getHcBaseUrl() {
         const hcConfig = this.getConfig().casacalida;
-        return (hcConfig.secure ? 'https' : 'http') + `://${hcConfig.server}:${hcConfig.port}/api/`;
+        return `${hcConfig.secure ? 'https' : 'http'}://${hcConfig.server}:${hcConfig.port}/api/`;
     },
 
     getToken() {

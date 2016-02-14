@@ -12,7 +12,7 @@ const config = require(`./config`);
 
 module.exports = {
     getDevicesInfo(state) {
-        return request.post(config.getZwaveBaseUrl() + url.data + '0', null, {
+        return request.post(`${config.getZwaveBaseUrl()}${url.data}0`, null, {
             'Cookie': state.cookie,
         }).then((data) => {
             if (data.statusCode !== 200) {
