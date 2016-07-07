@@ -10,7 +10,7 @@ module.exports = {
         username: 'admin',
         password: 'xxxxxxx',
     },
-    homecomfort: {
+    casacalida: {
         server: 'www.casa-calida.com',
         port: '3000',
         secure: false,

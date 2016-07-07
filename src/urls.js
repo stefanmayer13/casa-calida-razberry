@@ -5,12 +5,14 @@
 module.exports = {
     zwave: {
         login: '/ZAutomation/api/v1/login',
-        data: '/ZWaveAPI/Data/',
+        list: '/ZWave/list/',
+        data: '/ZWave.${0}/Data/',
+        devices: '/ZAutomation/api/v1/devices',
         xml: '/ZDDX',
     },
     casacalida: {
-        check: 'v1/check',
-        fullUpdate: 'v1/fullupdate',
-        incrementalUpdate: 'v1/incrementalupdate',
+        check: 'v1/check/',
+        fullUpdate: 'v1/fullupdate/',
+        incrementalUpdate: 'v1/incrementalupdate/',
     },
 };

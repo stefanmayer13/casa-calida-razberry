@@ -20,6 +20,7 @@ const state = {
     cookie: null,
     auth: null,
 };
+let controllers = [];
 let lastUpdate = 0;
 
 function getSensorData(key) {
@@ -28,53 +29,133 @@ function getSensorData(key) {
     if (data[2] === 'instances' && data[4] === 'commandClasses' && !isNaN(parseInt(data[5], 10))) {
         const commandClass = data[5];
         const sensorKey = data[7];
+        const instance = data[3];
         return {
             deviceId,
             commandClass,
             sensorKey,
+            instance,
         };
     }
 }
 
 function getIncrementalUpdate() {
-    devicesApi.getIncrementalUpdate(state, lastUpdate)
-        .then((data) => {
-            const keys = Object.keys(data);
-            lastUpdate = data.updateTime;
-            // logger.info(`Polling incremental update @ ${lastUpdate}. Received ${keys.length - 1} updates.`);
-            if (keys.length > 1) {
-                const sensorsData = keys.map((key) => {
-                    const sensorData = getSensorData(key);
-                    if (!sensorData || !commandClassConverter[sensorData.commandClass]) {
-                        return null;
-                    }
-                    const converter = commandClassConverter[sensorData.commandClass];
-                    const sensor = merge({
-                        key: sensorData.sensorKey,
-                        commandClass: sensorData.commandClass,
-                        lastUpdate: data[key].updateTime,
-                    }, converter(data[key]));
+    Promise.all(controllers.map(controller => {
+        return devicesApi.getIncrementalUpdate(state, controller, lastUpdate)
+            .then((data) => {
+                const keys = Object.keys(data);
+                lastUpdate = data.updateTime;
+                // logger.info(`Polling incremental update @ ${lastUpdate}. Received ${keys.length - 1} updates.`);
+                if (keys.length > 1) {
+                    const sensorsData = keys.map((key) => {
+                        const sensorData = getSensorData(key);
+                        if (!sensorData || !commandClassConverter[sensorData.commandClass]) {
+                            return null;
+                        }
+                        const converter = commandClassConverter[sensorData.commandClass];
+                        const deviceKey = controller + '_' + sensorData.deviceId;
+                        const keyPrefix = deviceKey + '-' + sensorData.instance + '-' + sensorData.commandClass + '-' + sensorData.sensorKey;
+                        const sensor = merge({
+                            key: keyPrefix,
+                            commandClass: sensorData.commandClass,
+                            lastUpdate: data[key].updateTime,
+                        }, converter(data[key]));
 
-                    logger.info(`Updated device data on device ${sensorData.deviceId}`, sensor);
-                    return {
-                        deviceId: sensorData.deviceId,
-                        sensor,
-                    };
-                }).filter((sensor) => !!sensor);
-                return casaCalida.incrementalUpdate(sensorsData);
-            }
-        })
-        .catch((e) => {
-            logger.error(e);
-            if (e.response && e.response.statusCode === 403) {
-                return authentication.login(state.auth.username, state.auth.password).then((cookie) => {
-                    logger.info('Reauthenticated zwave');
-                    state.cookie = cookie;
-                }).catch((error) => {
-                    logger.error(error);
-                    process.exit(3);
-                });
-            }
+                        logger.info(`Updated device data on device ${deviceKey}`, sensor);
+                        return {
+                            deviceId: deviceKey,
+                            sensor,
+                        };
+                    }).filter((sensor) => !!sensor);
+                    return {name: controller, sensors: sensorsData};
+                }
+            })
+            .catch((e) => {
+                logger.error(e);
+                if (e.response && e.response.statusCode === 403) {
+                    return authentication.login(state.auth.username, state.auth.password).then((cookie) => {
+                        logger.info('Reauthenticated zwave');
+                        state.cookie = cookie;
+                    }).catch((error) => {
+                        logger.error(error);
+                        process.exit(3);
+                    });
+                }
+            });
+    })).then(data => {
+        const controllerUpdates = data.filter(controller => !!controller);
+        if (controllerUpdates.length > 0) {
+            casaCalida.incrementalUpdate(controllerUpdates);
+        }
+    });
+}
+
+function getDeviceDataForController(controller) {
+    const data = controller.data;
+    lastUpdate = data.updateTime;
+    setInterval(getIncrementalUpdate, 5000);
+
+    const keys = Object.keys(data.devices);
+    logger.info(`Found ${keys.length} zwave devices`);
+
+    const devices = keys.map((key) => {
+        const instance = '0';
+        const commandClasses = Object.keys(data.devices[key].instances[instance].commandClasses);
+        const deviceKey = controller.name + '_' + key;
+        const sensors = commandClasses
+            .filter((commandClass) => commandClassConverter[commandClass])
+            .map((commandClass) => {
+                const keyPrefix = deviceKey + '-' + instance + '-' + commandClass;
+                const converter = commandClassConverter[commandClass];
+                return sensorConverter(keyPrefix, commandClass, data.devices[key].instances[instance].commandClasses[commandClass], converter);
+            });
+
+        const flattenSensors = [].concat.apply([], sensors);
+
+        return {
+            deviceId: deviceKey,
+            name: data.devices[key].data.givenName.value,
+            xml: data.devices[key].data.ZDDXMLFile.value,
+            deviceType: data.devices[key].data.deviceTypeString.value,
+            isAwake: data.devices[key].data.isAwake.value,
+            vendor: data.devices[key].data.vendorString.value,
+            battery: {
+                value: data.devices[key].instances[instance].commandClasses['128'] ? data.devices[key].instances[instance].commandClasses['128'].data.last.value : null,
+            },
+            sensors: flattenSensors,
+        };
+    });
+
+    const xmlRequest = devices.filter((device) => !!device.xml)
+        .map((device) => devicesApi.getXml(state, device.xml));
+
+    return Promise.all(xmlRequest)
+        .then((xmlData) => xmlData.map((doc) => {
+            const description = doc.object.ZWaveDevice.deviceDescription[0].description[0].lang.reduce((prev, descr) => {
+                prev[descr.$['xml:lang']] = descr._;
+                return prev;
+            }, {});
+            return {
+                xml: doc.xml,
+                brandName: doc.object.ZWaveDevice.deviceDescription[0].brandName[0],
+                productName: doc.object.ZWaveDevice.deviceDescription[0].productName[0],
+                battery: {
+                    type: doc.object.ZWaveDevice.deviceDescription[0].batteryType[0],
+                    count: doc.object.ZWaveDevice.deviceDescription[0].batteryCount[0],
+                },
+                description,
+                deviceImage: doc.object.ZWaveDevice.resourceLinks[0].deviceImage[0].$.url,
+            };
+        }))
+        .then((deviceDates) => devices.map((device) => {
+                const xmlData = deviceDates.filter((xmlDeviceData) => device.xml === xmlDeviceData.xml);
+                if (xmlData.length > 0) {
+                    return merge(device, xmlData[0]);
+                }
+                return device;
+            })
+        ).then(devices => {
+            return {name: controller.name, devices};
         });
 }
 
@@ -90,67 +171,11 @@ module.exports = function zwave(username, password) {
     ]).then((results) => {
         logger.info('Connected to casa-calida and zwave');
         state.cookie = results[1].split(';')[0];
-        return devicesApi.getDevicesInfo(state);
-    }).then((data) => {
-        lastUpdate = data.updateTime;
-        setInterval(getIncrementalUpdate, 5000);
-
-        const keys = Object.keys(data.devices);
-        logger.info(`Found ${keys.length} zwave devices`);
-
-        const devices = keys.map((key) => {
-            const commandClasses = Object.keys(data.devices[key].instances['0'].commandClasses);
-            const sensors = commandClasses
-                .filter((commandClass) => commandClassConverter[commandClass])
-                .map((commandClass) => {
-                    const converter = commandClassConverter[commandClass];
-                    return sensorConverter(commandClass, data.devices[key].instances['0'].commandClasses[commandClass], converter);
-                });
-
-            const flattenSensors = [].concat.apply([], sensors);
-
-            return {
-                deviceId: key,
-                name: data.devices[key].data.givenName.value,
-                xml: data.devices[key].data.ZDDXMLFile.value,
-                deviceType: data.devices[key].data.deviceTypeString.value,
-                isAwake: data.devices[key].data.isAwake.value,
-                vendor: data.devices[key].data.vendorString.value,
-                battery: {
-                    value: data.devices[key].instances['0'].commandClasses['128'] ? data.devices[key].instances['0'].commandClasses['128'].data.last.value : null,
-                },
-                sensors: flattenSensors,
-            };
-        });
-
-        const xmlRequest = devices.filter((device) => !!device.xml)
-            .map((device) => devicesApi.getXml(state, device.xml));
-
-        return Promise.all(xmlRequest)
-            .then((xmlData) => xmlData.map((doc) => {
-                const description = doc.object.ZWaveDevice.deviceDescription[0].description[0].lang.reduce((prev, descr) => {
-                    prev[descr.$['xml:lang']] = descr._;
-                    return prev;
-                }, {});
-                return {
-                    xml: doc.xml,
-                    brandName: doc.object.ZWaveDevice.deviceDescription[0].brandName[0],
-                    productName: doc.object.ZWaveDevice.deviceDescription[0].productName[0],
-                    battery: {
-                        type: doc.object.ZWaveDevice.deviceDescription[0].batteryType[0],
-                        count: doc.object.ZWaveDevice.deviceDescription[0].batteryCount[0],
-                    },
-                    description,
-                    deviceImage: doc.object.ZWaveDevice.resourceLinks[0].deviceImage[0].$.url,
-                };
-            }))
-            .then((deviceDates) => devices.map((device) => {
-                    const xmlData = deviceDates.filter((xmlDeviceData) => device.xml === xmlDeviceData.xml);
-                    if (xmlData.length > 0) {
-                        return merge(device, xmlData[0]);
-                    }
-                    return device;
-                })
-            );
+        return devicesApi.getController(state);
+    }).then((results) => {
+        controllers = results;
+        return Promise.all(controllers.map(controller => devicesApi.getDevicesInfo(state, controller)));
+    }).then((controllers) => {
+        return Promise.all(controllers.map(controller => getDeviceDataForController(controller)));
     }).then((devices) => casaCalida.fullUpdate(devices));
 };

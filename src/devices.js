@@ -11,15 +11,27 @@ const url = require('./urls').zwave;
 const config = require(`./config`);
 
 module.exports = {
-    getDevicesInfo(state) {
-        return request.post(`${config.getZwaveBaseUrl()}${url.data}0`, null, {
+    getController(state) {
+        return request.get(`${config.getZwaveBaseUrl()}${url.list}0`, {
             'Cookie': state.cookie,
         }).then((data) => {
             if (data.statusCode !== 200) {
-                log.error(`Couldn't get device info. Code ${data.statusCode}`);
+                log.error(`Couldn't get controller info. Code ${data.statusCode}`);
                 throw new Error(`${data.statusCode} ${data.error}`);
             }
             return data.body;
+        });
+    },
+
+    getDevicesInfo(state, controller) {
+        return request.post(`${config.getZwaveBaseUrl()}${url.data.replace('${0}', controller)}0`, null, {
+            'Cookie': state.cookie,
+        }).then((data) => {
+            if (data.statusCode !== 200) {
+                log.error(`Couldn't get device info for ${controller}. Code ${data.statusCode}`);
+                throw new Error(`${data.statusCode} ${data.error}`);
+            }
+            return {name: controller, data: data.body};
         });
     },
 
@@ -46,8 +58,8 @@ module.exports = {
         });
     },
 
-    getIncrementalUpdate(state, lastUpdate) {
-        return request.post(config.getZwaveBaseUrl() + url.data + lastUpdate, null, {
+    getIncrementalUpdate(state, controller, lastUpdate) {
+        return request.post(config.getZwaveBaseUrl() + url.data.replace('${0}', controller) + lastUpdate, null, {
             'Cookie': state.cookie,
         }).then((data) => {
             if (data.statusCode !== 200) {
