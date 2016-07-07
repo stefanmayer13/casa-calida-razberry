@@ -21,7 +21,6 @@ const state = {
     auth: null,
 };
 let controllers = [];
-let lastUpdate = 0;
 
 function getSensorData(key) {
     const data = key.split('.');
@@ -40,11 +39,11 @@ function getSensorData(key) {
 }
 
 function getIncrementalUpdate() {
-    Promise.all(controllers.map(controller => {
-        return devicesApi.getIncrementalUpdate(state, controller, lastUpdate)
+    Promise.all(controllers.map(controller =>
+        devicesApi.getIncrementalUpdate(state, controller.name, controller.lastUpdate)
             .then((data) => {
                 const keys = Object.keys(data);
-                lastUpdate = data.updateTime;
+                controller.lastUpdate = data.updateTime;
                 // logger.info(`Polling incremental update @ ${lastUpdate}. Received ${keys.length - 1} updates.`);
                 if (keys.length > 1) {
                     const sensorsData = keys.map((key) => {
@@ -53,8 +52,8 @@ function getIncrementalUpdate() {
                             return null;
                         }
                         const converter = commandClassConverter[sensorData.commandClass];
-                        const deviceKey = controller + '_' + sensorData.deviceId;
-                        const keyPrefix = deviceKey + '-' + sensorData.instance + '-' + sensorData.commandClass + '-' + sensorData.sensorKey;
+                        const deviceKey = `${controller.name}_${sensorData.deviceId}`;
+                        const keyPrefix = `${deviceKey}-${sensorData.instance}-${sensorData.commandClass}-${sensorData.sensorKey}`;
                         const sensor = merge({
                             key: keyPrefix,
                             commandClass: sensorData.commandClass,
@@ -67,7 +66,7 @@ function getIncrementalUpdate() {
                             sensor,
                         };
                     }).filter((sensor) => !!sensor);
-                    return {name: controller, sensors: sensorsData};
+                    return {name: controller.name, sensors: sensorsData};
                 }
             })
             .catch((e) => {
@@ -81,8 +80,8 @@ function getIncrementalUpdate() {
                         process.exit(3);
                     });
                 }
-            });
-    })).then(data => {
+            })
+    )).then(data => {
         const controllerUpdates = data.filter(controller => !!controller);
         if (controllerUpdates.length > 0) {
             casaCalida.incrementalUpdate(controllerUpdates);
@@ -90,9 +89,9 @@ function getIncrementalUpdate() {
     });
 }
 
-function getDeviceDataForController(controller) {
+function getDeviceDataForController(controller, sensorsData) {
     const data = controller.data;
-    lastUpdate = data.updateTime;
+    controller.controller.lastUpdate = data.updateTime;
     setInterval(getIncrementalUpdate, 5000);
 
     const keys = Object.keys(data.devices);
@@ -101,13 +100,13 @@ function getDeviceDataForController(controller) {
     const devices = keys.map((key) => {
         const instance = '0';
         const commandClasses = Object.keys(data.devices[key].instances[instance].commandClasses);
-        const deviceKey = controller.name + '_' + key;
+        const deviceKey = `${controller.controller.name}_${key}`;
         const sensors = commandClasses
             .filter((commandClass) => commandClassConverter[commandClass])
             .map((commandClass) => {
-                const keyPrefix = deviceKey + '-' + instance + '-' + commandClass;
+                const keyPrefix = `${deviceKey}-${instance}-${commandClass}`;
                 const converter = commandClassConverter[commandClass];
-                return sensorConverter(keyPrefix, commandClass, data.devices[key].instances[instance].commandClasses[commandClass], converter);
+                return sensorConverter(keyPrefix, commandClass, data.devices[key].instances[instance].commandClasses[commandClass], converter, sensorsData);
             });
 
         const flattenSensors = [].concat.apply([], sensors);
@@ -154,9 +153,7 @@ function getDeviceDataForController(controller) {
                 }
                 return device;
             })
-        ).then(devices => {
-            return {name: controller.name, devices};
-        });
+        ).then(devices => ({name: controller.controller.name, devices}));
 }
 
 module.exports = function zwave(username, password) {
@@ -173,9 +170,22 @@ module.exports = function zwave(username, password) {
         state.cookie = results[1].split(';')[0];
         return devicesApi.getController(state);
     }).then((results) => {
-        controllers = results;
+        controllers = results.map(controller => {
+            return {
+                name: controller,
+                lastUpdate: 0,
+            };
+        });
         return Promise.all(controllers.map(controller => devicesApi.getDevicesInfo(state, controller)));
-    }).then((controllers) => {
-        return Promise.all(controllers.map(controller => getDeviceDataForController(controller)));
-    }).then((devices) => casaCalida.fullUpdate(devices));
+    }).then((data) =>
+        devicesApi.getZAutomationInfo(state).then((sensors) => {
+            const sensorsData = sensors.map(sensor => ({
+                id: sensor.id,
+                title: sensor.metrics.title,
+                icon: sensor.metrics.icon,
+                tags: sensor.tags.join(','),
+            }));
+            return Promise.all(data.map(controller => getDeviceDataForController(controller, sensorsData)));
+        })
+    ).then((devices) => casaCalida.fullUpdate(devices));
 };
