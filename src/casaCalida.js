@@ -22,7 +22,6 @@ module.exports = {
     },
 
     fullUpdate(update) {
-        log.info('Full update sent');
         return request.post(config.getHcBaseUrl() + url.fullUpdate, update, {
             'Token': config.getToken(),
         }).then((data) => {
@@ -35,7 +34,6 @@ module.exports = {
     },
 
     incrementalUpdate(update) {
-        log.info('Incremental update sent');
         return request.post(config.getHcBaseUrl() + url.incrementalUpdate, update, {
             'Token': config.getToken(),
         }).then((data) => {

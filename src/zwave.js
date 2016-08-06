@@ -84,6 +84,7 @@ function getIncrementalUpdate() {
     )).then(data => {
         const controllerUpdates = data.filter(controller => !!controller);
         if (controllerUpdates.length > 0) {
+            logger.info('Incremental zwave update sent');
             casaCalida.incrementalUpdate(controllerUpdates);
         }
     }).catch(e => {
@@ -189,5 +190,8 @@ module.exports = function zwave(username, password) {
             }));
             return Promise.all(data.map(controller => getDeviceDataForController(controller, sensorsData)));
         })
-    ).then((devices) => casaCalida.fullUpdate(devices));
+    ).then((devices) => {
+        logger.info('Full zwave update sent');
+        return casaCalida.fullUpdate(devices);
+    });
 };

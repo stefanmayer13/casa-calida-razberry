@@ -1,22 +1,40 @@
+/**
+ * @author <a href="mailto:stefan@stefanmayer.me">Stefan Mayer</a>
+ */
+
+const merge = require('deepmerge');
 const moment = require('moment');
 const request = require('./utils/request');
 const logger = require('./logger');
 const casaCalida = require('./casaCalida');
+
+const waterControlConverter = require('./converter/WaterControl');
 
 function getIotData(ips) {
     logger.verbose('Getting data from iot devices');
     return Promise.all(ips.map(ip => {
         logger.verbose(`Connecting to iot device http://${ip}/api/`);
         return request.get(`http://${ip}/api/`)
-            .then((data) => {
+            .then(data => {
                 if (data.statusCode !== 200) {
-                    log.error(`Couldn't get iot device info from ${ip}. Code ${data.statusCode}`);
+                    logger.error(`Couldn't get iot device info from ${ip}. Code ${data.statusCode}`);
                     throw new Error(`${data.statusCode} ${data.error}`);
                 }
                 return data.body;
-            });
-    })).then(data => {
-        console.log(data);
+            }).then(data => waterControlConverter(data, 'iot', 'sprinkler'));
+    })).then(iotData => {
+        const controllerUpdates = iotData.map((data) => {
+            return {name: 'iot', sensors: data.map(sensor => {
+                return {
+                    deviceId: 'sprinkler',
+                    sensor: sensor,
+                };
+            })};
+        });
+        if (controllerUpdates.length > 0) {
+            logger.info('Incremental iot update sent');
+            casaCalida.incrementalUpdate(controllerUpdates);
+        }
     }).catch(e => {
         logger.error(e);
     });
@@ -29,16 +47,31 @@ function setIotTime(ips) {
 
     return Promise.all(ips.map(ip => {
         logger.verbose(`Setting time on iot device http://${ip}/api/`);
-        console.log(`http://${ip}/api/time?date=${date}&time=${hour}%3A${minute}`);
         return request.get(`http://${ip}/api/time?date=${date}&time=${hour}%3A${minute}`)
             .then((data) => {
                 if (data.statusCode !== 200) {
-                    log.error(`Couldn't set iot device time at ${ip}. Code ${data.statusCode}`);
+                    logger.error(`Couldn't set iot device time at ${ip}. Code ${data.statusCode}`);
                     throw new Error(`${data.statusCode} ${data.error}`);
                 }
                 return data.body;
             });
-    })).catch(e => {
+    })).then(deviceData => {
+        const update = [{name: 'iot', devices: deviceData.map(data => {
+            const sensors = waterControlConverter(data, 'iot', 'sprinkler');
+            return {
+                deviceId: 'sprinkler',
+                name: 'Sprinkler Control',
+                deviceType: 'Sprinkler Control',
+                isAwake: true,
+                vendor: 'Casa-Calida',
+                brandName: 'Casa-Calida',
+                productName: 'Sprinkler Control',
+                sensors,
+            }
+        })}];
+        logger.info('Full iot update sent');
+        return casaCalida.fullUpdate(update);
+    }).catch(e => {
         logger.error(e);
     });
 }
@@ -46,7 +79,7 @@ function setIotTime(ips) {
 module.exports = function iot(ips) {
     return casaCalida.check()
         .then(() => {
-            setIotTime(ips).then(getIotData.bind(null, ips));
+            setIotTime(ips);
             setInterval(getIotData.bind(null, ips), 120000);
             setInterval(setIotTime.bind(null, ips), 3600000);
         }).catch(e => {
