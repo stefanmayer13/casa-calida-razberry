@@ -80,7 +80,7 @@ module.exports = function iot(ips) {
     return casaCalida.check()
         .then(() => {
             setIotTime(ips);
-            setInterval(getIotData.bind(null, ips), 120000);
+            setInterval(getIotData.bind(null, ips), 300000);
             setInterval(setIotTime.bind(null, ips), 3600000);
         }).catch(e => {
             logger.error(e);
