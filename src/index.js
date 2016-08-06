@@ -8,6 +8,7 @@ const path = require('path');
 const logger = require('./logger');
 const config = require('./config');
 const zwave = require('./zwave');
+const iot = require('./iot');
 const processArguments = require('./utils/processArguments');
 
 const configPath = processArguments.get('config');
@@ -37,3 +38,5 @@ zwave(auth.username, auth.password)
         logger.error(e);
         process.exit(3);
     });
+
+iot(config.getIotIps());

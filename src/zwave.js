@@ -86,6 +86,8 @@ function getIncrementalUpdate() {
         if (controllerUpdates.length > 0) {
             casaCalida.incrementalUpdate(controllerUpdates);
         }
+    }).catch(e => {
+        logger.error(e);
     });
 }
 

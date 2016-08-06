@@ -37,4 +37,8 @@ module.exports = {
             password: this.getConfig().zwave.password,
         };
     },
+
+    getIotIps() {
+        return this.getConfig().cciot;
+    }
 };
