@@ -27,13 +27,19 @@ function getIotData(ips) {
             return {name: 'iot', sensors: data.map(sensor => {
                 return {
                     deviceId: 'sprinkler',
-                    sensor: sensor,
+                    sensor,
                 };
             })};
         });
         if (controllerUpdates.length > 0) {
             logger.info('Incremental iot update sent');
-            casaCalida.incrementalUpdate(controllerUpdates);
+            casaCalida.incrementalUpdate(controllerUpdates).then(data => {
+                const skipJob = data.jobs.filter(job => job.device === 'iot-sprinkler' && job.type === "skipdaily");
+                if (skipJob.length > 0) {
+                    logger.info(`Sending skipdaily to iot device`);
+                    return request.get(`http://192.168.1.110/api/?skipdaily=1`);
+                }
+            });
         }
     }).catch(e => {
         logger.error(e);
@@ -79,9 +85,9 @@ function setIotTime(ips) {
 module.exports = function iot(ips) {
     return casaCalida.check()
         .then(() => {
-            setIotTime(ips);
-            setInterval(getIotData.bind(null, ips), 300000);
+            setInterval(getIotData.bind(null, ips), 30000);
             setInterval(setIotTime.bind(null, ips), 3600000);
+            return setIotTime(ips);
         }).catch(e => {
             logger.error(e);
         });
