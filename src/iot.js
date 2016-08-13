@@ -34,11 +34,15 @@ function getIotData(ips) {
         if (controllerUpdates.length > 0) {
             logger.info('Incremental iot update sent');
             casaCalida.incrementalUpdate(controllerUpdates).then(data => {
-                const skipJob = data.jobs.filter(job => job.device === 'iot-sprinkler' && job.type === "skipdaily");
-                if (skipJob.length > 0) {
-                    logger.info(`Sending skipdaily to iot device`);
-                    return request.get(`http://192.168.1.110/api/?skipdaily=1`);
-                }
+                const jobs = data.jobs.filter(job => job.device === 'iot-sprinkler').map(job => {
+                    logger.info(`Sending ${job.type}=${job.value} to iot device`);
+                    let prefix = '';
+                    if (job.type === 'time') {
+                        prefix = 'daily'
+                    }
+                    return request.get(`http://192.168.1.110/api/${prefix}?${job.type}=${job.value}`);
+                });
+                return Promise.all(jobs);
             });
         }
     }).catch(e => {
@@ -85,7 +89,7 @@ function setIotTime(ips) {
 module.exports = function iot(ips) {
     return casaCalida.check()
         .then(() => {
-            setInterval(getIotData.bind(null, ips), 30000);
+            setInterval(getIotData.bind(null, ips), 300000);
             setInterval(setIotTime.bind(null, ips), 3600000);
             return setIotTime(ips);
         }).catch(e => {
