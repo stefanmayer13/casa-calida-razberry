@@ -40,7 +40,7 @@ module.exports = function convert(data, controller, deviceId) {
         lastUpdate: date,
     }*/];
 
-    const lastRun = moment(data.lastRun, 'YYYY-MM-DD');
+    const lastRun = moment(data.lastRun, 'HH:mm:ss');
     if (lastRun.isValid()) {
         sensors.push({
             key: controller + '-' + deviceId + '-water-last',

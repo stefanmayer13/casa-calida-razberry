@@ -30,19 +30,19 @@ function getIotData(ips) {
             }).then(data => {
                 const converter = iotMapping[data.type];
                 if (converter) {
-                    return converter(data, 'iot', data.id);
+                    return converter(data, 'iot', data.id).map(sensor => {
+                        return {
+                            deviceId: data.id,
+                            sensor
+                        }
+                    });
                 }
                 return null;
             });
         }).filter(device => !!device)
     ).then(iotData => {
-        const controllerUpdates = iotData.map((data) => {
-            return {name: 'iot', sensors: data.map(sensor => {
-                return {
-                    deviceId: 'sprinkler',
-                    sensor,
-                };
-            })};
+        const controllerUpdates = iotData.map(data => {
+            return {name: 'iot', sensors: data}
         });
         if (controllerUpdates.length > 0) {
             logger.info('Incremental iot update sent');
