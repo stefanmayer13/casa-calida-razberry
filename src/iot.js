@@ -27,8 +27,15 @@ function getIotData(ips) {
                     throw new Error(`${data.statusCode} ${data.error}`);
                 }
                 return data.body;
-            }).then(data => waterControlConverter(data, 'iot', 'sprinkler'));
-    })).then(iotData => {
+            }).then(data => {
+                const converter = iotMapping[data.type];
+                if (converter) {
+                    return converter(data, 'iot', data.id);
+                }
+                return null;
+            });
+        }).filter(device => !!device)
+    ).then(iotData => {
         const controllerUpdates = iotData.map((data) => {
             return {name: 'iot', sensors: data.map(sensor => {
                 return {
@@ -71,7 +78,7 @@ function fullIotData(ips) {
         const update = [{name: 'iot', devices: deviceData.map(data => {
             const converter = iotMapping[data.type];
             if (converter) {
-                const sensors = waterControlConverter(data, 'iot', 'sprinkler');
+                const sensors = converter(data, 'iot', data.id);
                 return {
                     deviceId: data.id,
                     name: data.name,

@@ -1,6 +1,6 @@
 {
   "name": "casa-calida",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Connects your RaZberry to the casa-calida servers. Runs directly on your Raspberry Pi.",
   "main": "lib/index.js",
   "scripts": {
