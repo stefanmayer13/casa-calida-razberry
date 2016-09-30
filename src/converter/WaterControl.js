@@ -14,14 +14,6 @@ module.exports = function convert(data, controller, deviceId) {
         value: data.active ? 'True' : 'False',
         valueType: 'bool',
         lastUpdate: date,
-    }, {
-        key: controller + '-' + deviceId + '-water-lastActive',
-        commandClass: '1',
-        name: 'Water Valve Last Open',
-        title: 'Water Valve Last Open',
-        value: data.lastRun,
-        valueType: 'time',
-        lastUpdate: date,
     }/*, {
         key: controller + '-' + deviceId + '-water-schedule',
         commandClass: '2',

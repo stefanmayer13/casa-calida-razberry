@@ -9,6 +9,12 @@ const logger = require('./logger');
 const casaCalida = require('./casaCalida');
 
 const waterControlConverter = require('./converter/WaterControl');
+const temperatureSensorConverter = require('./converter/TemperatureSensor');
+
+const iotMapping = {
+    'casa-calida-sprinkler': waterControlConverter,
+    'casa-calida-temperature': temperatureSensorConverter,
+};
 
 function getIotData(ips) {
     logger.verbose('Getting data from iot devices');
@@ -63,18 +69,22 @@ function fullIotData(ips) {
             });
     })).then(deviceData => {
         const update = [{name: 'iot', devices: deviceData.map(data => {
-            const sensors = waterControlConverter(data, 'iot', 'sprinkler');
-            return {
-                deviceId: 'sprinkler',
-                name: 'Sprinkler Control',
-                deviceType: 'Sprinkler Control',
-                isAwake: true,
-                vendor: 'Casa-Calida',
-                brandName: 'Casa-Calida',
-                productName: 'Sprinkler Control',
-                sensors,
+            const converter = iotMapping[data.type];
+            if (converter) {
+                const sensors = waterControlConverter(data, 'iot', 'sprinkler');
+                return {
+                    deviceId: data.id,
+                    name: data.name,
+                    deviceType: data.type,
+                    isAwake: true,
+                    vendor: 'Casa-Calida',
+                    brandName: 'Casa-Calida',
+                    productName: data.name,
+                    sensors,
+                }
             }
-        })}];
+            return null;
+        }).filter(device => !!device)}];
         logger.info('Full iot update sent');
         return casaCalida.fullUpdate(update);
     }).catch(e => {
