@@ -50,17 +50,13 @@ function getIotData(ips) {
     });
 }
 
-function setIotTime(ips) {
-    const date = moment().format('YYYY-MM-DD');
-    const hour = moment().format('HH');
-    const minute = moment().format('mm');
-
-    return Promise.all(ips.map(ip => {
-        logger.verbose(`Setting time on iot device http://${ip}/api/`);
-        return request.get(`http://${ip}/api/time?date=${date}&time=${hour}%3A${minute}`)
+function fullIotData(ips) {
+   return Promise.all(ips.map(ip => {
+        logger.verbose(`Getting data for iot device http://${ip}/api/`);
+        return request.get(`http://${ip}/api/`)
             .then((data) => {
                 if (data.statusCode !== 200) {
-                    logger.error(`Couldn't set iot device time at ${ip}. Code ${data.statusCode}`);
+                    logger.error(`Couldn't get iot data from ${ip}. Code ${data.statusCode}`);
                     throw new Error(`${data.statusCode} ${data.error}`);
                 }
                 return data.body;
@@ -90,8 +86,7 @@ module.exports = function iot(ips) {
     return casaCalida.check()
         .then(() => {
             setInterval(getIotData.bind(null, ips), 300000);
-            setInterval(setIotTime.bind(null, ips), 3600000);
-            return setIotTime(ips);
+            return fullIotData(ips);
         }).catch(e => {
             logger.error(e);
         });
