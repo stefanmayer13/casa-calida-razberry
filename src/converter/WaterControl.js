@@ -14,6 +14,15 @@ module.exports = function convert(data, controller, deviceId) {
         value: data.active ? 'True' : 'False',
         valueType: 'bool',
         lastUpdate: date,
+    }, {
+        key: controller + '-' + deviceId + '-outside-temperature',
+        commandClass: '1',
+        name: 'Outside Temperature',
+        title: 'Outside Temperature',
+        value: data.temperature,
+        valueType: 'number',
+        scale: '°C',
+        lastUpdate: date,
     }/*, {
         key: controller + '-' + deviceId + '-water-schedule',
         commandClass: '2',
