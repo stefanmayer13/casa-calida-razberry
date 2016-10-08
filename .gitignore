@@ -9,4 +9,4 @@ node_modules
 lib
 
 # Documentation
-/docs/_build
+/doc/_build
