@@ -14,7 +14,7 @@ module.exports = function convert(data, controller, deviceId) {
         value: data.active ? 'True' : 'False',
         valueType: 'bool',
         lastUpdate: date,
-    }, {
+    }/*, {
         key: controller + '-' + deviceId + '-water-schedule',
         commandClass: '2',
         name: 'Sprinkler Schedule',
@@ -38,17 +38,9 @@ module.exports = function convert(data, controller, deviceId) {
         value: data.scheduleSkip ? 'True': 'False',
         valueType: 'bool',
         lastUpdate: date,
-    }, {
-        key: controller + '-' + deviceId + '-wifi-error',
-        commandClass: '0',
-        name: 'Wifi Error',
-        title: 'Wifi Error',
-        value: data.wifi_error_state ? 'True': 'False',
-        valueType: 'bool',
-        lastUpdate: date,
-    }];
+    }*/];
 
-    const lastRun = moment(data.lastRun, 'YYYY-MM-DD');
+    const lastRun = moment(data.lastRun, 'HH:mm:ss');
     if (lastRun.isValid()) {
         sensors.push({
             key: controller + '-' + deviceId + '-water-last',
