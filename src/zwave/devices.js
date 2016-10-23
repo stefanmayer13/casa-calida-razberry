@@ -4,11 +4,11 @@
 
 const xml2js = require('xml2js');
 const parser = new xml2js.Parser();
-const log = require('./logger');
-const request = require('./utils/request');
-const url = require('./urls').zwave;
+const log = require('../logger');
+const request = require('../utils/request');
+const url = require('../urls').zwave;
 
-const config = require(`./config`);
+const config = require(`../config`);
 
 module.exports = {
     getController(state) {

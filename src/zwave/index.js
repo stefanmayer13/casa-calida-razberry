@@ -3,11 +3,11 @@
  */
 
 const merge = require('deepmerge');
-const logger = require('./logger');
+const logger = require('../logger');
 
 const authentication = require('./authentication');
 const devicesApi = require('./devices');
-const casaCalida = require('./casaCalida');
+const casaCalida = require('../casaCalida');
 const sensorConverter = require('./converter/Sensor');
 
 const commandClassConverter = {
@@ -38,7 +38,7 @@ function getSensorData(key) {
     }
 }
 
-function getIncrementalUpdate() {
+function getIncrementalUpdate(websocket) {
     Promise.all(controllers.map(controller =>
         devicesApi.getIncrementalUpdate(state, controller.name, controller.lastUpdate)
             .then((data) => {
@@ -60,7 +60,7 @@ function getIncrementalUpdate() {
                             lastUpdate: data[key].updateTime,
                         }, converter(data[key]));
 
-                        logger.info(`Updated device data on device ${deviceKey}`, sensor);
+                        logger.verbose(`Updated device data on device ${deviceKey}`, sensor);
                         return {
                             deviceId: deviceKey,
                             sensor,
@@ -85,7 +85,7 @@ function getIncrementalUpdate() {
         const controllerUpdates = data.filter(controller => !!controller);
         if (controllerUpdates.length > 0) {
             logger.info('Incremental zwave update sent');
-            casaCalida.incrementalUpdate(controllerUpdates);
+            casaCalida.incrementalUpdate(websocket, controllerUpdates);
         }
     }).catch(e => {
         logger.error(e);
@@ -95,7 +95,6 @@ function getIncrementalUpdate() {
 function getDeviceDataForController(controller, sensorsData) {
     const data = controller.data;
     controller.controller.lastUpdate = data.updateTime;
-    setInterval(getIncrementalUpdate, 5000);
 
     const keys = Object.keys(data.devices);
     logger.info(`Found ${keys.length} zwave devices`);
@@ -159,39 +158,38 @@ function getDeviceDataForController(controller, sensorsData) {
         ).then(devices => ({name: controller.controller.name, devices}));
 }
 
-module.exports = function zwave(username, password) {
+module.exports = function zwave(username, password, websocket) {
     logger.info(`Zwave started`);
     state.auth = {
         username,
         password,
     };
-    return Promise.all([
-        casaCalida.check(),
-        authentication.login(username, password),
-    ]).then((results) => {
-        logger.info('Connected to casa-calida and zwave');
-        state.cookie = results[1].split(';')[0];
-        return devicesApi.getController(state);
-    }).then((results) => {
-        controllers = results.map(controller => {
-            return {
-                name: controller,
-                lastUpdate: 0,
-            };
+    return authentication.login(username, password)
+        .then((result) => {
+            logger.info('Connected to zwave');
+            state.cookie = result.split(';')[0];
+            return devicesApi.getController(state);
+        }).then((results) => {
+            controllers = results.map(controller => {
+                return {
+                    name: controller,
+                    lastUpdate: 0,
+                };
+            });
+            return Promise.all(controllers.map(controller => devicesApi.getDevicesInfo(state, controller)));
+        }).then((data) =>
+            devicesApi.getZAutomationInfo(state).then((sensors) => {
+                const sensorsData = sensors.map(sensor => ({
+                    id: sensor.id,
+                    title: sensor.metrics.title,
+                    icon: sensor.metrics.icon,
+                    tags: sensor.tags.join(','),
+                }));
+                return Promise.all(data.map(controller => getDeviceDataForController(controller, sensorsData)));
+            })
+        ).then((devices) => {
+            logger.info('Full zwave update sent');
+            setInterval(getIncrementalUpdate.bind(null, websocket), 5000);
+            return casaCalida.fullUpdate(websocket, devices);
         });
-        return Promise.all(controllers.map(controller => devicesApi.getDevicesInfo(state, controller)));
-    }).then((data) =>
-        devicesApi.getZAutomationInfo(state).then((sensors) => {
-            const sensorsData = sensors.map(sensor => ({
-                id: sensor.id,
-                title: sensor.metrics.title,
-                icon: sensor.metrics.icon,
-                tags: sensor.tags.join(','),
-            }));
-            return Promise.all(data.map(controller => getDeviceDataForController(controller, sensorsData)));
-        })
-    ).then((devices) => {
-        logger.info('Full zwave update sent');
-        return casaCalida.fullUpdate(devices);
-    });
 };

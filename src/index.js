@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('./logger');
 const config = require('./config');
+const CasaCalida = require('./CasaCalida');
 const zwave = require('./zwave');
 const iot = require('./iot');
 const processArguments = require('./utils/processArguments');
@@ -33,10 +34,12 @@ try {
 config.setPath(absoluteConfigPath);
 const auth = config.getAuthentication();
 
-zwave(auth.username, auth.password)
-    .catch((e) => {
-        logger.error(e);
-        process.exit(3);
-    });
-
-iot(config.getIotIps());
+CasaCalida.connect().then((websocket) =>
+    Promise.all([
+        zwave(auth.username, auth.password, websocket),
+        iot(config.getIotIps(), websocket)
+    ])
+).catch((e) => {
+    logger.error(e);
+    process.exit(3);
+});

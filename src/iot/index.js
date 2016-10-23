@@ -4,9 +4,9 @@
 
 const merge = require('deepmerge');
 const moment = require('moment');
-const request = require('./utils/request');
-const logger = require('./logger');
-const casaCalida = require('./casaCalida');
+const request = require('../utils/request');
+const logger = require('../logger');
+const casaCalida = require('../casaCalida');
 
 const waterControlConverter = require('./converter/WaterControl');
 const temperatureSensorConverter = require('./converter/TemperatureSensor');
@@ -16,7 +16,7 @@ const iotMapping = {
     'casa-calida-temperature': temperatureSensorConverter,
 };
 
-function getIotData(ips) {
+function getIotData(ips, websocket) {
     logger.verbose('Getting data from iot devices');
     return Promise.all(ips.map(ip => {
         logger.verbose(`Connecting to iot device http://${ip}/api/`);
@@ -46,24 +46,14 @@ function getIotData(ips) {
         });
         if (controllerUpdates.length > 0) {
             logger.info('Incremental iot update sent');
-            casaCalida.incrementalUpdate(controllerUpdates).then(data => {
-                const jobs = data.jobs.filter(job => job.device === 'iot-sprinkler').map(job => {
-                    logger.info(`Sending ${job.type}=${job.value} to iot device`);
-                    let prefix = '';
-                    if (job.type === 'time') {
-                        prefix = 'daily'
-                    }
-                    return request.get(`http://192.168.1.110/api/${prefix}?${job.type}=${job.value}`);
-                });
-                return Promise.all(jobs);
-            });
+            casaCalida.incrementalUpdate(websocket, controllerUpdates);
         }
     }).catch(e => {
         logger.error(e);
     });
 }
 
-function fullIotData(ips) {
+function fullIotData(ips, websocket) {
    return Promise.all(ips.map(ip => {
         logger.verbose(`Getting data for iot device http://${ip}/api/`);
         return request.get(`http://${ip}/api/`)
@@ -93,18 +83,13 @@ function fullIotData(ips) {
             return null;
         }).filter(device => !!device)}];
         logger.info('Full iot update sent');
-        return casaCalida.fullUpdate(update);
+        return casaCalida.fullUpdate(websocket, update);
     }).catch(e => {
         logger.error(e);
     });
 }
 
-module.exports = function iot(ips) {
-    return casaCalida.check()
-        .then(() => {
-            setInterval(getIotData.bind(null, ips), 300000);
-            return fullIotData(ips);
-        }).catch(e => {
-            logger.error(e);
-        });
+module.exports = function iot(ips, websocket) {
+    setInterval(getIotData.bind(null, ips, websocket), 300000);
+    return fullIotData(ips, websocket);
 };

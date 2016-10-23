@@ -22,9 +22,14 @@ module.exports = {
         return `${zwaveConfig.secure ? 'https' : 'http'}://${zwaveConfig.server}:${zwaveConfig.port}`;
     },
 
-    getHcBaseUrl() {
+    getCasaCalidaBaseUrl() {
         const hcConfig = this.getConfig().casacalida;
         return `${hcConfig.secure ? 'https' : 'http'}://${hcConfig.server}:${hcConfig.port}/api/`;
+    },
+
+    getCasaClidaWebsocketBaseUrl() {
+        const hcConfig = this.getConfig().casacalida;
+        return `ws://${hcConfig.server}:${hcConfig.port}`;
     },
 
     getToken() {
