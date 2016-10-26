@@ -4,13 +4,17 @@
 
 const merge = require('deepmerge');
 
-module.exports = function convert(keyPrefix, commandClass, sensorType, converter, sensorsData) {
+module.exports = function convert(keyPrefix, commandClass, sensorType, converter, sensorsData, deviceKey) {
     const sensorKeys = Object.keys(sensorType.data);
     return sensorKeys
-        .filter((sensorKey) => !isNaN(parseInt(sensorKey, 10)))
+        .filter(converter.isValidKey)
         .map((sensorKey) => {
             const key = `${keyPrefix}-${sensorKey}`;
-            const sensorDataArr = sensorsData.filter(sensorData => sensorData.id.indexOf(key) >= 0);
+            let sensorDataKey = keyPrefix;
+            if (!isNaN(parseInt(sensorKey, 10))) {
+                sensorDataKey = key;
+            }
+            const sensorDataArr = sensorsData.filter(sensorData => sensorData.id.indexOf(sensorDataKey) >= 0);
             let sensorData = {};
             if (sensorDataArr.length > 0) {
                 sensorData = {
@@ -20,11 +24,15 @@ module.exports = function convert(keyPrefix, commandClass, sensorType, converter
                 };
             }
             const sensor = sensorType.data[sensorKey];
+            const convertedSensor = converter.convert(sensor);
+            if (!convertedSensor) {
+                return null;
+            }
             return merge(merge({
                 key,
                 commandClass,
                 type: sensorType.name,
                 lastUpdate: sensor.updateTime,
-            }, converter(sensor)), sensorData);
-        });
+            }, convertedSensor), sensorData);
+        }).filter(sensor => !!sensor);
 };

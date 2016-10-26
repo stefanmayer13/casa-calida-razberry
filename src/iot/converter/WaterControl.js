@@ -14,6 +14,7 @@ module.exports = function convert(data, controller, deviceId) {
         value: data.active ? 'True' : 'False',
         valueType: 'bool',
         lastUpdate: date,
+        type: 'actuator',
     }, {
         key: controller + '-' + deviceId + '-outside-temperature',
         commandClass: '1',
@@ -23,6 +24,7 @@ module.exports = function convert(data, controller, deviceId) {
         valueType: 'number',
         scale: '°C',
         lastUpdate: date,
+        type: 'sensor',
     }/*, {
         key: controller + '-' + deviceId + '-water-schedule',
         commandClass: '2',
@@ -59,6 +61,7 @@ module.exports = function convert(data, controller, deviceId) {
             value: lastRun.unix(),
             valueType: 'datetime',
             lastUpdate: date,
+            type: 'sensor',
         });
     }
 

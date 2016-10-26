@@ -11,6 +11,7 @@ const casaCalida = require('../casaCalida');
 const sensorConverter = require('./converter/Sensor');
 
 const commandClassConverter = {
+    '38': require('./converter/SwitchMultilevel'),
     '48': require('./converter/SensorBinary'),
     '49': require('./converter/SensorMultilevel'),
     '156': require('./converter/AlarmSensor'),
@@ -52,13 +53,16 @@ function getIncrementalUpdate(websocket) {
                             return null;
                         }
                         const converter = commandClassConverter[sensorData.commandClass];
+                        if (!converter.isValidKey(sensorData.sensorKey)) {
+                            return null;
+                        }
                         const deviceKey = `${controller.name}_${sensorData.deviceId}`;
                         const keyPrefix = `${deviceKey}-${sensorData.instance}-${sensorData.commandClass}-${sensorData.sensorKey}`;
                         const sensor = merge({
                             key: keyPrefix,
                             commandClass: sensorData.commandClass,
                             lastUpdate: data[key].updateTime,
-                        }, converter(data[key]));
+                        }, converter.convert(data[key]));
 
                         logger.verbose(`Updated device data on device ${deviceKey}`, sensor);
                         return {
@@ -108,7 +112,7 @@ function getDeviceDataForController(controller, sensorsData) {
             .map((commandClass) => {
                 const keyPrefix = `${deviceKey}-${instance}-${commandClass}`;
                 const converter = commandClassConverter[commandClass];
-                return sensorConverter(keyPrefix, commandClass, data.devices[key].instances[instance].commandClasses[commandClass], converter, sensorsData);
+                return sensorConverter(keyPrefix, commandClass, data.devices[key].instances[instance].commandClasses[commandClass], converter, sensorsData, deviceKey);
             });
 
         const flattenSensors = [].concat.apply([], sensors);
