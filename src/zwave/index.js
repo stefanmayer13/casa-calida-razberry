@@ -127,6 +127,7 @@ function getDeviceDataForController(controller, sensorsData) {
             battery: {
                 value: data.devices[key].instances[instance].commandClasses['128'] ? data.devices[key].instances[instance].commandClasses['128'].data.last.value : null,
             },
+            protocol: 'zwave',
             sensors: flattenSensors,
         };
     });
@@ -162,38 +163,46 @@ function getDeviceDataForController(controller, sensorsData) {
         ).then(devices => ({name: controller.controller.name, devices}));
 }
 
-module.exports = function zwave(username, password, websocket) {
-    logger.info(`Zwave started`);
-    state.auth = {
-        username,
-        password,
-    };
-    return authentication.login(username, password)
-        .then((result) => {
-            logger.info('Connected to zwave');
-            state.cookie = result.split(';')[0];
-            return devicesApi.getController(state);
-        }).then((results) => {
-            controllers = results.map(controller => {
-                return {
-                    name: controller,
-                    lastUpdate: 0,
-                };
+module.exports = {
+    init(username, password, websocket) {
+        logger.info(`Zwave started`);
+        state.auth = {
+            username,
+            password,
+        };
+        return authentication.login(username, password)
+            .then((result) => {
+                logger.info('Connected to zwave');
+                state.cookie = result.split(';')[0];
+                return devicesApi.getController(state);
+            }).then((results) => {
+                controllers = results.map(controller => {
+                    return {
+                        name: controller,
+                        lastUpdate: 0,
+                    };
+                });
+                return Promise.all(controllers.map(controller => devicesApi.getDevicesInfo(state, controller)));
+            }).then((data) =>
+                devicesApi.getZAutomationInfo(state).then((sensors) => {
+                    const sensorsData = sensors.map(sensor => ({
+                        id: sensor.id,
+                        title: sensor.metrics.title,
+                        icon: sensor.metrics.icon,
+                        tags: sensor.tags.join(','),
+                    }));
+                    return Promise.all(data.map(controller => getDeviceDataForController(controller, sensorsData)));
+                })
+            ).then((devices) => {
+                logger.info('Full zwave update sent');
+                setInterval(getIncrementalUpdate.bind(null, websocket), 5000);
+                return casaCalida.fullUpdate(websocket, devices);
             });
-            return Promise.all(controllers.map(controller => devicesApi.getDevicesInfo(state, controller)));
-        }).then((data) =>
-            devicesApi.getZAutomationInfo(state).then((sensors) => {
-                const sensorsData = sensors.map(sensor => ({
-                    id: sensor.id,
-                    title: sensor.metrics.title,
-                    icon: sensor.metrics.icon,
-                    tags: sensor.tags.join(','),
-                }));
-                return Promise.all(data.map(controller => getDeviceDataForController(controller, sensorsData)));
-            })
-        ).then((devices) => {
-            logger.info('Full zwave update sent');
-            setInterval(getIncrementalUpdate.bind(null, websocket), 5000);
-            return casaCalida.fullUpdate(websocket, devices);
-        });
+    },
+
+    action(id, value) {
+        return devicesApi.sendCommand(state, id, value).catch((e) => {
+            logger.error(e);
+        })
+    }
 };

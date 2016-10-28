@@ -7,6 +7,7 @@ const log = require('./logger');
 const request = require('./utils/request');
 const url = require('./urls').casacalida;
 const config = require('./config');
+const zwave = require('./zwave');
 let loginPolling = null;
 
 function sendLogin(socket) {
@@ -23,13 +24,20 @@ const CasaCalida = {
             socket.onmessage = (e) => {
                 const data = JSON.parse(e.data);
                 console.log(data); //TODO remove
-                if (data.type === 'login') {
-                    if (loginPolling) {
-                        clearInterval(loginPolling);
-                        loginPolling = null;
-                    }
-                    log.info(`Logged in at CasaCalida with user ${data.user}`);
-                    resolve(socket);
+                switch(data.type) {
+                    case 'login':
+                        if (loginPolling) {
+                            clearInterval(loginPolling);
+                            loginPolling = null;
+                        }
+                        log.info(`Logged in at CasaCalida with user ${data.user}`);
+                        resolve(socket);
+                        break;
+                    case 'actuator':
+                        if (data.protocol === 'zwave') {
+                            zwave.action(data.id, data.value);
+                        }
+                        break;
                 }
             };
             socket.onopen = () => {

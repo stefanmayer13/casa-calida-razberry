@@ -77,6 +77,7 @@ function fullIotData(ips, websocket) {
                     vendor: 'Casa-Calida',
                     brandName: 'Casa-Calida',
                     productName: data.name,
+                    protocol: 'iot',
                     sensors,
                 }
             }

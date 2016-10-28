@@ -36,7 +36,7 @@ const auth = config.getAuthentication();
 
 CasaCalida.connect().then((websocket) =>
     Promise.all([
-        zwave(auth.username, auth.password, websocket),
+        zwave.init(auth.username, auth.password, websocket),
         iot(config.getIotIps(), websocket)
     ])
 ).catch((e) => {

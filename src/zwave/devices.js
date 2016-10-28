@@ -81,4 +81,16 @@ module.exports = {
             return data.body;
         });
     },
+
+    sendCommand(state, id, value) {
+        return request.get(`${config.getZwaveBaseUrl()}${url.devices}/ZWayVDev_${id}/command/${value}`, {
+            'Cookie': state.cookie,
+        }).then((data) => {
+            if (data.statusCode !== 200) {
+                log.error(`Couldn't send command ${value} to ${id}. Code ${data.statusCode}`);
+                throw new Error(`${data.statusCode} ${data.error}`);
+            }
+            return data.body;
+        });
+    }
 };

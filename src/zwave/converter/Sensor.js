@@ -29,7 +29,7 @@ module.exports = function convert(keyPrefix, commandClass, sensorType, converter
                 return null;
             }
             return merge(merge({
-                key,
+                key: sensorDataKey,
                 commandClass,
                 type: sensorType.name,
                 lastUpdate: sensor.updateTime,
