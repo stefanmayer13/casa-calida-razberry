@@ -11,9 +11,9 @@ const casaCalida = require('../CasaCalida');
 const sensorConverter = require('./converter/Sensor');
 
 const commandClassConverter = {
-    '38': require('./converter/SwitchMultilevel'),
+    '38': require('./converter/SwitchMultiLevel'),
     '48': require('./converter/SensorBinary'),
-    '49': require('./converter/SensorMultilevel'),
+    '49': require('./converter/SensorMultiLevel'),
     '156': require('./converter/AlarmSensor'),
 };
 
