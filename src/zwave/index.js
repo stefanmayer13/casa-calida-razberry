@@ -7,7 +7,7 @@ const logger = require('../logger');
 
 const authentication = require('./authentication');
 const devicesApi = require('./devices');
-const casaCalida = require('../casaCalida');
+const casaCalida = require('../CasaCalida');
 const sensorConverter = require('./converter/Sensor');
 
 const commandClassConverter = {
@@ -197,6 +197,8 @@ module.exports = {
                 logger.info('Full zwave update sent');
                 setInterval(getIncrementalUpdate.bind(null, websocket), 5000);
                 return casaCalida.fullUpdate(websocket, devices);
+            }).then(() => {
+                casaCalida.register('zwave', this);
             });
     },
 

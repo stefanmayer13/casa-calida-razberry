@@ -2,11 +2,10 @@
  * @author <a href="mailto:stefan@stefanmayer.me">Stefan Mayer</a>
  */
 
-const merge = require('deepmerge');
 const moment = require('moment');
 const request = require('../utils/request');
 const logger = require('../logger');
-const casaCalida = require('../casaCalida');
+const casaCalida = require('../CasaCalida');
 
 const waterControlConverter = require('./converter/WaterControl');
 const temperatureSensorConverter = require('./converter/TemperatureSensor');

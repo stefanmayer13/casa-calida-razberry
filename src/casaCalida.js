@@ -7,7 +7,6 @@ const log = require('./logger');
 const request = require('./utils/request');
 const url = require('./urls').casacalida;
 const config = require('./config');
-const zwave = require('./zwave');
 let loginPolling = null;
 
 function sendLogin(socket) {
@@ -16,6 +15,8 @@ function sendLogin(socket) {
         token: config.getToken()
     }));
 }
+
+const protocolMapping = {};
 
 const CasaCalida = {
     connect() {
@@ -34,8 +35,8 @@ const CasaCalida = {
                         resolve(socket);
                         break;
                     case 'actuator':
-                        if (data.protocol === 'zwave') {
-                            zwave.action(data.id, data.value);
+                        if (protocolMapping[data.protocol]) {
+                            protocolMapping[data.protocol].action(data.id, data.value);
                         }
                         break;
                 }
@@ -62,6 +63,10 @@ const CasaCalida = {
                 reject(e);
             };
         });
+    },
+
+    register(protocol, instance) {
+        protocolMapping[protocol] = instance;
     },
 
     fullUpdate(socket, update) {
