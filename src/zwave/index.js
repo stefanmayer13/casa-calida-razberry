@@ -176,12 +176,10 @@ module.exports = {
                 state.cookie = result.split(';')[0];
                 return devicesApi.getController(state);
             }).then((results) => {
-                controllers = results.map(controller => {
-                    return {
-                        name: controller,
-                        lastUpdate: 0,
-                    };
-                });
+                controllers = results.map(controller => ({
+                    name: controller,
+                    lastUpdate: 0,
+                }));
                 return Promise.all(controllers.map(controller => devicesApi.getDevicesInfo(state, controller)));
             }).then((data) =>
                 devicesApi.getZAutomationInfo(state).then((sensors) => {

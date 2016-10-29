@@ -7,7 +7,7 @@ module.exports = function convert(data, controller, deviceId) {
     const date = Math.floor(Date.now() / 1000);
 
     const sensors = [{
-        key: controller + '-' + deviceId + '-water-status',
+        key: `${controller}-${deviceId}-water-status`,
         commandClass: '1',
         name: 'Water Valve Status',
         title: 'Water Valve Status',
@@ -16,7 +16,7 @@ module.exports = function convert(data, controller, deviceId) {
         lastUpdate: date,
         type: 'actuator',
     }, {
-        key: controller + '-' + deviceId + '-outside-temperature',
+        key: `${controller}-${deviceId}-outside-temperature`,
         commandClass: '1',
         name: 'Outside Temperature',
         title: 'Outside Temperature',
@@ -26,7 +26,7 @@ module.exports = function convert(data, controller, deviceId) {
         lastUpdate: date,
         type: 'sensor',
     }/*, {
-        key: controller + '-' + deviceId + '-water-schedule',
+        key: `${controller}-${deviceId}-water-schedule`,
         commandClass: '2',
         name: 'Sprinkler Schedule',
         title: 'Sprinkler Schedule',
@@ -34,7 +34,7 @@ module.exports = function convert(data, controller, deviceId) {
         valueType: 'time',
         lastUpdate: date,
     }, {
-        key: controller + '-' + deviceId + '-schedule-active',
+        key: `${controller}-${deviceId}-schedule-active`,
         commandClass: '1',
         name: 'Sprinkler Schedule Active',
         title: 'Sprinkler Schedule Active',
@@ -42,7 +42,7 @@ module.exports = function convert(data, controller, deviceId) {
         valueType: 'bool',
         lastUpdate: date,
     }, {
-        key: controller + '-' + deviceId + '-schedule-skip',
+        key: `${controller}-${deviceId}-schedule-skip`,
         commandClass: '1',
         name: 'Sprinkler Schedule Skip',
         title: 'Sprinkler Schedule Skip',
@@ -54,7 +54,7 @@ module.exports = function convert(data, controller, deviceId) {
     const lastRun = moment(data.lastRun, 'HH:mm:ss');
     if (lastRun.isValid()) {
         sensors.push({
-            key: controller + '-' + deviceId + '-water-last',
+            key: `${controller}-${deviceId}-water-last`,
             commandClass: '0',
             name: 'Water Valve Last Open',
             title: 'Water Valve Last Open',

@@ -6,7 +6,7 @@ module.exports = function convert(data, controller, deviceId) {
     const date = Math.floor(Date.now() / 1000);
 
     const sensors = [{
-        key: controller + '-' + deviceId + '-temperature',
+        key: `${controller}-${deviceId}-temperature`,
         commandClass: '1',
         name: 'Temperature',
         title: 'Temperature',
@@ -16,7 +16,7 @@ module.exports = function convert(data, controller, deviceId) {
         lastUpdate: date,
         type: 'sensor',
     }, {
-        key: controller + '-' + deviceId + '-humidity',
+        key: `${controller}-${deviceId}-humidity`,
         commandClass: '1',
         name: 'Humidity',
         title: 'Humidity',

@@ -29,20 +29,19 @@ function getIotData(ips, websocket) {
             }).then(data => {
                 const converter = iotMapping[data.type];
                 if (converter) {
-                    return converter(data, 'iot', data.id).map(sensor => {
-                        return {
-                            deviceId: data.id,
-                            sensor
-                        }
-                    });
+                    return converter(data, 'iot', data.id).map(sensor => ({
+                        deviceId: data.id,
+                        sensor
+                    }));
                 }
                 return null;
             });
         }).filter(device => !!device)
     ).then(iotData => {
-        const controllerUpdates = iotData.map(data => {
-            return {name: 'iot', sensors: data}
-        });
+        const controllerUpdates = iotData.map(data => ({
+            name: 'iot',
+            sensors: data
+        }));
         if (controllerUpdates.length > 0) {
             logger.info('Incremental iot update sent');
             casaCalida.incrementalUpdate(websocket, controllerUpdates);
