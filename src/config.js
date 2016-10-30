@@ -29,7 +29,7 @@ module.exports = {
 
     getCasaClidaWebsocketBaseUrl() {
         const hcConfig = this.getConfig().casacalida;
-        return `${hcConfig.secure ? 'wss' : 'ws'}://${hcConfig.server}`;
+        return `${hcConfig.secure ? 'wss' : 'ws'}://${hcConfig.server}${hcConfig.port ? `:${hcConfig.port}` : ''}`;
     },
 
     getToken() {
