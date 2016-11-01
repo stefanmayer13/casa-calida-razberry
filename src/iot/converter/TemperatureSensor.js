@@ -14,7 +14,7 @@ module.exports = function convert(data, controller, deviceId) {
         valueType: 'number',
         scale: '°C',
         lastUpdate: date,
-        type: 'sensor',
+        deviceType: 'sensor',
     }, {
         key: `${controller}-${deviceId}-humidity`,
         commandClass: '1',
@@ -24,7 +24,7 @@ module.exports = function convert(data, controller, deviceId) {
         valueType: 'number',
         scale: '%',
         lastUpdate: date,
-        type: 'sensor',
+        deviceType: 'sensor',
     }];
 
     return sensors;
