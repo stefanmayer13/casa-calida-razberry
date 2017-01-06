@@ -12,6 +12,7 @@ const temperatureSensorConverter = require('./converter/TemperatureSensor');
 
 const iotMapping = {
     'casa-calida-sprinkler': waterControlConverter,
+    'casa-calida-temperature-outside': waterControlConverter,
     'casa-calida-temperature': temperatureSensorConverter,
 };
 

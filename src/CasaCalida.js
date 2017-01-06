@@ -74,6 +74,8 @@ const CasaCalida = {
             throw new Error('Not connected to CasaCalida')
         }
 
+        //console.log('Sending full update', update[0].name, update[0].devices); //TODO remove
+
         socket.send(JSON.stringify({
             type: 'fullupdate',
             data: update
@@ -84,6 +86,8 @@ const CasaCalida = {
         if (!socket) {
             throw new Error('Not connected to CasaCalida')
         }
+
+        //console.log('Sending update', update[0].name, update[0].sensors); //TODO remove
 
         socket.send(JSON.stringify({
             type: 'update',

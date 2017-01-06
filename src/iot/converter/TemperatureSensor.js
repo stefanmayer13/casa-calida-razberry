@@ -5,12 +5,16 @@
 module.exports = function convert(data, controller, deviceId) {
     const date = Math.floor(Date.now() / 1000);
 
+    if (!data.temperature && data.humidity) {
+        return [];
+    }
+
     const sensors = [{
         key: `${controller}-${deviceId}-temperature`,
         commandClass: '1',
         name: 'Temperature',
         title: 'Temperature',
-        value: data.temperature,
+        value: parseFloat(data.temperature, 10),
         valueType: 'number',
         scale: '°C',
         lastUpdate: date,
@@ -20,7 +24,7 @@ module.exports = function convert(data, controller, deviceId) {
         commandClass: '1',
         name: 'Humidity',
         title: 'Humidity',
-        value: data.humidity,
+        value: parseFloat(data.humidity, 10),
         valueType: 'number',
         scale: '%',
         lastUpdate: date,
