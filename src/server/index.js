@@ -35,6 +35,9 @@ module.exports = function server(websocket) {
                         sensor
                     })),
                 }];
+                if (data.battery) {
+                    update[0].sensors[0].battery = Math.round(data.battery/3.3*100);
+                }
                 casaCalida.incrementalUpdate(websocket, update);
             } else {
                 const update = [{
@@ -51,6 +54,13 @@ module.exports = function server(websocket) {
                         sensors: iotMapping[data.type](data, 'iot', data.id),
                     }]
                 }];
+                if(data.battery) {
+                    update[0].devices[0].battery = {
+                        type: 'AA',
+                        count: 3,
+                        value: Math.round(data.battery/3.3*100),
+                    };
+                }
                 casaCalida.fullUpdate(websocket, update);
                 knowIds.push(data.id);
             }
