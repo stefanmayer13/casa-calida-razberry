@@ -62,9 +62,13 @@ function fullIotData(ips, websocket) {
                     throw new Error(`${data.statusCode} ${data.error}`);
                 }
                 return data.body;
+            }).catch((e) => {
+                logger.error(e);
+                return null;
             });
     })).then(deviceData => {
-        const update = [{name: 'iot', devices: deviceData.map(data => {
+        const update = [{name: 'iot', devices: deviceData.filter(data => !!data)
+          .map(data => {
             const converter = iotMapping[data.type];
             if (converter) {
                 const sensors = converter(data, 'iot', data.id);
