@@ -1,8 +1,0 @@
-{
-    "plugins": [
-        "syntax-trailing-function-commas",
-        "transform-class-properties",
-        "transform-es2015-parameters",
-        "transform-strict-mode"
-    ]
-}
