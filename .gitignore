@@ -1,12 +1,2 @@
-# IntelliJ
-.idea
 tmp
-
-# Dependencies
-node_modules
-
-# Transpiled files
-lib
-
-# Documentation
-/doc/_build
+debug

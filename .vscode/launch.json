@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "C:\\Users\\Stefan\\Dev\\go\\src\\casa-calida.com\\casa-calida-razberry\\casacalida.go",
+            "env": {
+                "GOPATH": "C:\\Users\\Stefan\\Dev\\go",
+                "GOROOT": "C:\\Users\\Stefan\\scoop\\apps\\go\\1.8.3"},
+            "args": [],
+            "showLog": true
+        }
+    ]
+}
