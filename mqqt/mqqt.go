@@ -26,10 +26,10 @@ func Start() {
 	}
 }
 
-func Publish(message string) {
+func Publish(thing string, message string) {
 	err := cli.Publish(&client.PublishOptions{
 		QoS:       mqtt.QoS0,
-		TopicName: []byte("casacalida_to_awsiot/casa-calida-outdoor-temp-1/shadow/update"),
+		TopicName: []byte(fmt.Sprintf("casacalida_to_awsiot/%v/shadow/update", thing)),
 		Message:   []byte(message),
 	})
 	if err != nil {

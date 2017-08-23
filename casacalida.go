@@ -24,16 +24,18 @@ func main() {
 }
 
 func pollSensorData() {
-	var prevData float64 = 0
+	ips := [2]string{"192.168.1.36", "192.168.1.38"}
+	prevData := [2][2]float64{{0, 0}, {0, 0}}
 	mqqt.Start()
 	for {
-		go getSensorData(&prevData)
+		go getSensorData(ips[0], &prevData[0])
+		go getSensorData(ips[1], &prevData[1])
 		time.Sleep(20 * time.Second)
 	}
 }
 
-func getSensorData(prevData *float64) {
-	ret, err := sensors.GetSensorData("192.168.1.36", "casa-calida")
+func getSensorData(ip string, prevData *[2]float64) {
+	ret, err := sensors.GetSensorData(ip, "casa-calida")
 	if err != nil {
 		fmt.Println(err)
 	} else {
@@ -43,12 +45,29 @@ func getSensorData(prevData *float64) {
 			panic(err)
 		}
 
-		curData, ok := data["temperature"].(float64)
+		curData1, ok1 := data["temperature"].(float64)
+		curData2, ok2 := data["humidity"].(float64)
 
-		if ok && *prevData != curData {
+		//fmt.Println(fmt.Sprintf("%f != %f", (*prevData)[0], curData1))
+		//fmt.Println(fmt.Sprintf("%f != %f", (*prevData)[1], curData2))
+		setPrevData := false
+		if ok1 && ((*prevData)[0] != curData1 || (*prevData)[1] != curData2) {
 			fmt.Println(string(ret))
-			mqqt.Publish(fmt.Sprintf("{\"state\" : {\"reported\" : {\"temperature\" : %f}}}", curData))
-			*prevData = curData
+			if (ok2) {
+				if (curData1 <= 100 && curData2 <= 100) {
+					mqqt.Publish("casa-calida-indoor-temp-1", fmt.Sprintf("{\"state\" : {\"reported\" : {\"temperature\" : %f, \"humidity\" : %f}}}", curData1, curData2))
+					//fmt.Println(fmt.Sprintf("{\"state\" : {\"reported\" : {\"temperature\" : %f, \"humidity\" : %f}}}", curData1, curData2))
+					setPrevData = true
+				}
+			} else {
+				mqqt.Publish("casa-calida-outdoor-temp-1", fmt.Sprintf("{\"state\" : {\"reported\" : {\"temperature\" : %f}}}", curData1))
+				//fmt.Println(fmt.Sprintf("{\"state\" : {\"reported\" : {\"temperature\" : %f}}}", curData1))
+				setPrevData = true
+			}
+			if (setPrevData) {
+				(*prevData)[0] = curData1
+				(*prevData)[1] = curData2
+			}
 		}
 	}
 }
