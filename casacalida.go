@@ -27,17 +27,19 @@ func pollSensorData() {
 	ips := [2]string{"192.168.1.36", "192.168.1.38"}
 	prevData := [2][2]float64{{0, 0}, {0, 0}}
 	mqqt.Start()
+	mqqt.Subscribe()
 	for {
-		go getSensorData(ips[0], &prevData[0])
-		go getSensorData(ips[1], &prevData[1])
+		go getSensorData(sensors.GetSensor(ips[0], "casa-calida"), &prevData[0])
+		go getSensorData(sensors.GetSensor(ips[1], "casa-calida"), &prevData[1])
 		time.Sleep(20 * time.Second)
 	}
 }
 
-func getSensorData(ip string, prevData *[2]float64) {
-	ret, err := sensors.GetSensorData(ip, "casa-calida")
+func getSensorData(sensor sensors.Sensor, prevData *[2]float64) (error) {
+	ret, err := sensor.GetSensorData()
 	if err != nil {
 		fmt.Println(err)
+		return err
 	} else {
 		var data map[string]interface{}
 
@@ -69,5 +71,6 @@ func getSensorData(ip string, prevData *[2]float64) {
 				(*prevData)[1] = curData2
 			}
 		}
+		return nil
 	}
 }

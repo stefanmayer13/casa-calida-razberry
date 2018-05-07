@@ -2,6 +2,7 @@ package mqqt
 
 import (
 	"fmt"
+
 	"github.com/yosssi/gmq/mqtt"
 	"github.com/yosssi/gmq/mqtt/client"
 )
@@ -31,6 +32,23 @@ func Publish(thing string, message string) {
 		QoS:       mqtt.QoS0,
 		TopicName: []byte(fmt.Sprintf("casacalida_to_awsiot/%v/shadow/update", thing)),
 		Message:   []byte(message),
+	})
+	if err != nil {
+		panic(err)
+	}
+}
+
+func Subscribe() {
+	err := cli.Subscribe(&client.SubscribeOptions{
+		SubReqs: []*client.SubReq{
+			&client.SubReq{
+				TopicFilter: []byte("awsiot_to_casacalida/#"),
+				QoS:         mqtt.QoS0,
+				Handler: func(topicName, message []byte) {
+					fmt.Println(string(topicName), string(message))
+				},
+			},
+		},
 	})
 	if err != nil {
 		panic(err)
